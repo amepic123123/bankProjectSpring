@@ -1,12 +1,13 @@
 package com.example.demo.dto;
 
 import java.math.BigDecimal;
-import com.example.demo.AccountType;
+
+import com.example.demo.model.AccountType;
 
 public record AccountResponse (
 
     Long id,
-    String accountNumber,
+    Long accountNumber,
     AccountType accountType,
     Long userId,
     BigDecimal balance
