@@ -9,7 +9,6 @@ public record AccountResponse (
     Long id,
     Long accountNumber,
     AccountType accountType,
-    Long userId,
     BigDecimal balance
 
 ) {}

@@ -4,7 +4,7 @@ import org.springframework.stereotype.Service;
 
 import com.example.demo.repository.AccountRepository;
 import com.example.demo.repository.UserRepository;
-
+import com.example.demo.model.User;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
@@ -22,30 +22,36 @@ public class AccountService {
          this.userRepository = userRepository;
     }
 
-    private boolean accountExists(Long accountId) {
-        return accountRepository.existsById(accountId);
-    }
     public AccountResponse createAccount(CreateAccountRequest request){
+        User user = userRepository.findById(request.userId()).orElseThrow(() -> new RuntimeException("User not found"));
+        
+        if(user.getAccounts().size() >= 3) 
+            throw new RuntimeException("User cannot have more than 3 accounts");
 
-        if (accountExists(request.accountNumber())) throw new RuntimeException("Account with this number already exists");
         Account account = new Account();
-        account.setId(request.accountNumber());
+        account.setAccountNumber(request.accountNumber());
         account.setBalance(request.initialDeposit());
         account.setAccountType(request.accountType());
-        account.setUser(userRepository.findById(request.userId()).orElseThrow(() -> new RuntimeException("User not found")));
+        account.setUser(user);
+        account.setAccountType(request.accountType());
         Account savedAccount = accountRepository.save(account);
 
         return new AccountResponse(savedAccount.getId(), savedAccount.getAccountNumber(), savedAccount.getAccountType(), savedAccount.getUser().getId(), savedAccount.getBalance());
     }
 
     @Transactional
-    public boolean withdraw(Long accountId, BigDecimal amount){
+    public boolean withdraw(Long accountId, BigDecimal amount, Long loggedInUserId){
 
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) 
             throw new RuntimeException("Withdrawal amount must be positive");
 
+        
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        
+        if(!account.getUser().getId().equals(loggedInUserId))
+            throw new RuntimeException("Unauthorized access to account");
+
         if(account.getBalance().compareTo(amount) < 0) 
             throw new RuntimeException("Insufficient funds");
     
