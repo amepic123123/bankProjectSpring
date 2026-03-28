@@ -8,7 +8,7 @@ public record TransactionResponse (
     
     Long id,
     Account fromAccount,
-    TransactionType transactionType,
+    TransactionType type,
     BigDecimal amount,
     Account toAccount,
     String createdAt
