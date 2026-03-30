@@ -26,7 +26,7 @@ public class UserService {
 
   public UserResponse createUser(CreateUserRequest request){
 
-    if (accountExists(request.email())) throw new RuntimeException("User with this email already exists");
+    if (accountExists(request.email())) throw new IllegalArgumentException("User with this email already exists");
         User user = new User();
         user.setName(request.userName());
         user.setEmail(request.email());
@@ -41,10 +41,10 @@ public class UserService {
         return new LoginResponse(token);
     }
     private User authenticate(String email, String password){
-        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Invalid email or password"));
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
 
         if (!passwordEncoder.matches(password, user.getPasswordHash()))
-            throw new RuntimeException("Invalid email or password");
+            throw new IllegalArgumentException("Invalid email or password");
 
         return user;
     }

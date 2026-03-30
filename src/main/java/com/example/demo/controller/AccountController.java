@@ -9,13 +9,17 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.demo.service.AccountService;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Positive;
 
 import java.math.BigDecimal;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
+
 import com.example.demo.dto.CreateAccountRequest;
 
 
 @RestController
+@Validated
 @RequestMapping("/api/accounts")
 public class AccountController {
 
@@ -25,43 +29,34 @@ public class AccountController {
         this.accountService = accountService;
     }
     @PostMapping
-    public ResponseEntity<?> createAccount(@RequestBody CreateAccountRequest request){
-        try{
+    public ResponseEntity<?> createAccount(@Valid @RequestBody CreateAccountRequest request){
+
             return ResponseEntity.ok(accountService.createAccount(request));
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
     @PostMapping("/{accountId}/withdraw")
-    public ResponseEntity<?> withdraw(@PathVariable Long accountId, @RequestParam BigDecimal amount, @RequestParam Long loggedInUserId){
-        try{
-           accountService.withdraw(accountId, amount, loggedInUserId);
-
+    public ResponseEntity<?> withdraw(@PathVariable Long accountId,@Valid @Positive @RequestParam BigDecimal amount){
+   
+           accountService.withdraw(accountId, amount);
            return ResponseEntity.ok("Withdraw succesful");
 
-        }catch(RuntimeException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+   
     }
 
     @PostMapping("/{accountId}/deposit")
-    public ResponseEntity<?> deposit(@PathVariable Long accountId,@Valid @RequestParam BigDecimal amount){
-        try{
+    public ResponseEntity<?> deposit(@PathVariable Long accountId,@Valid @Positive @RequestParam BigDecimal amount){
+    
             accountService.deposit(accountId, amount);
             return ResponseEntity.ok("deposit Succesful");
-        }catch(RuntimeException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+   
     }
 
     @PostMapping("/{accountId}/transfer")
-    public ResponseEntity<?> transfer(@Valid @PathVariable Long accountId, @Valid @RequestParam Long toAccountId, @Valid @RequestParam BigDecimal amount){
-        try{
+    public ResponseEntity<?> transfer(@PathVariable Long accountId,@Valid @RequestParam Long toAccountId,@Positive @Valid @RequestParam BigDecimal amount){
+   
             accountService.transfer(accountId, toAccountId, amount);
             return ResponseEntity.ok("Transfer completed");
-        }catch (RuntimeException e){
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
+
     }
     
 }

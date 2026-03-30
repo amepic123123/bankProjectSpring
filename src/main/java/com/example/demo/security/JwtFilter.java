@@ -1,5 +1,6 @@
 package com.example.demo.security;
 
+
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -16,6 +17,7 @@ import java.io.IOException;
 
 @Component
 public class JwtFilter extends OncePerRequestFilter{
+    
     
     private JwtService jwtService;
 
@@ -39,7 +41,7 @@ public class JwtFilter extends OncePerRequestFilter{
             Long userId = jwtService.extractUserId(jwtToken);
             
             if(email != null && SecurityContextHolder.getContext().getAuthentication() == null){
-                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(email, null, new ArrayList<>());
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null, new ArrayList<>());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
 
@@ -47,7 +49,10 @@ public class JwtFilter extends OncePerRequestFilter{
         
     
     }catch (Exception e) {
-        System.out.println("Error processing JWT: " + e.getMessage());
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.getWriter().write("{\"error\": \"Invalid or expired token\"}");
+        return;
     }
 
         filterChain.doFilter(request, response);

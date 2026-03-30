@@ -7,13 +7,21 @@ import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 import com.example.demo.model.User;
 
-
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class JwtService {
 
-    private static final String JWT_KEY = System.getenv("JWT_SECRET");
+    private final String JWT_KEY;
+
+    public JwtService(@Value("${jwt.secret}") String jwtKey) {
+        if(jwtKey == null || jwtKey.getBytes().length < 32) {
+            throw new IllegalArgumentException("JWT secret key must be at least 32 characters long, Or its missing");
+        }
+        this.JWT_KEY = jwtKey;
+    }
+
     private static final long EXPIRATION_TIME = 86400000;
 
     private Key getSigningKey() {

@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 
 import com.example.demo.model.AccountType;
 
+
 public record AccountResponse (
 
     Long id,
@@ -11,4 +12,4 @@ public record AccountResponse (
     AccountType accountType,
     BigDecimal balance
 
-) {}
+){}

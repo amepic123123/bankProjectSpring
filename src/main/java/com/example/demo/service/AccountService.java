@@ -5,11 +5,11 @@ import org.springframework.stereotype.Service;
 import com.example.demo.repository.AccountRepository;
 import com.example.demo.repository.UserRepository;
 import com.example.demo.model.User;
-
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
 import com.example.demo.model.Account;
 import com.example.demo.dto.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 @Service
 public class AccountService {
@@ -25,7 +25,8 @@ public class AccountService {
     public AccountResponse createAccount(CreateAccountRequest request){
         User user = userRepository.findById(request.userId()).orElseThrow(() -> new RuntimeException("User not found"));
         
-        if(user.getAccounts().size() >= 3) 
+
+        if(accountRepository.countByUserId(request.userId()) >= 3)
             throw new RuntimeException("User cannot have more than 3 accounts");
 
         Account account = new Account();
@@ -33,24 +34,19 @@ public class AccountService {
         account.setBalance(request.initialDeposit());
         account.setAccountType(request.accountType());
         account.setUser(user);
-        account.setAccountType(request.accountType());
         Account savedAccount = accountRepository.save(account);
 
-        return new AccountResponse(savedAccount.getId(), savedAccount.getAccountNumber(), savedAccount.getAccountType(), savedAccount.getUser().getId(), savedAccount.getBalance());
+        return new AccountResponse(savedAccount.getId(), savedAccount.getAccountNumber(), savedAccount.getAccountType(),  savedAccount.getBalance());
     }
 
+    @PreAuthorize("@accountAuthorizationService.canAccessAccount(#accountId)")
     @Transactional
-    public boolean withdraw(Long accountId, BigDecimal amount, Long loggedInUserId){
-
+    public boolean withdraw(Long accountId, BigDecimal amount){
 
         if (amount.compareTo(BigDecimal.ZERO) <= 0) 
             throw new RuntimeException("Withdrawal amount must be positive");
 
-        
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
-        
-        if(!account.getUser().getId().equals(loggedInUserId))
-            throw new RuntimeException("Unauthorized access to account");
 
         if(account.getBalance().compareTo(amount) < 0) 
             throw new RuntimeException("Insufficient funds");
@@ -60,17 +56,19 @@ public class AccountService {
       return true;
 
     }
+    @PreAuthorize("@accountAuthorizationService.canAccessAccount(#accountId)")
     @Transactional
     public boolean deposit(Long accountId, BigDecimal amount){
+
         if (amount.compareTo(BigDecimal.ZERO) <= 0) 
             throw new RuntimeException("Deposit amount must be positive");
-
         Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+
         account.setBalance(account.getBalance().add(amount));
         accountRepository.save(account);
         return true;
     }
-
+    @PreAuthorize("@accountAuthorizationService.canAccessAccount(#fromAccountId)")
     @Transactional
     public boolean transfer(Long fromAccountId, Long toAccountId, BigDecimal amount){
         if (amount.compareTo(BigDecimal.ZERO) <= 0) 
@@ -93,5 +91,11 @@ public class AccountService {
 
         return true;
 
+    }
+    @PreAuthorize("@accountAuthorizationService.canAccessAccount(#accountId)")
+    @Transactional
+    public BigDecimal getBalance(Long accountId){
+        Account account = accountRepository.findById(accountId).orElseThrow(() -> new RuntimeException("Account not found"));
+        return account.getBalance();
     }
 }
