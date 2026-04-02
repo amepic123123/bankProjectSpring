@@ -52,7 +52,7 @@ public class AccountController {
     }
 
     @PostMapping("/{accountId}/transfer")
-    public ResponseEntity<?> transfer(@PathVariable Long accountId,@Valid @RequestParam Long toAccountId,@Positive @Valid @RequestParam BigDecimal amount){
+    public ResponseEntity<?> transfer(@PathVariable Long accountId,@Valid @Positive @RequestParam Long toAccountId,@Positive @Valid @RequestParam BigDecimal amount){
    
             accountService.transfer(accountId, toAccountId, amount);
             return ResponseEntity.ok("Transfer completed");

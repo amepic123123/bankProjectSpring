@@ -23,6 +23,7 @@ public record CreateAccountRequest(
     @Positive(message = "Initial deposit must be a positive number")
     BigDecimal initialDeposit,
     @NotNull(message = "User ID is required")
+    @Positive(message = "User ID must be a positive number")
     Long userId
     
 
